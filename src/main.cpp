@@ -1,106 +1,53 @@
 #include <Arduino.h>
-#include <WiFiManager.h>
-#include <WebServer.h>
-#include "SPIFFS.h"
-#include <ArduinoJson.h>
+#include "EncoderHandler.h"
+#include "DisplayHandler.h"
 
-#define LED_BUILTIN 8
-WebServer server(80);
+EncoderHandler encoder;
+DisplayHandler display;
 
-// put function declarations here:
-void serveFile(const char *, const char *);
-void handleLedPost();
+double currentVoltageCh1 = 2.1;
+double currentVoltageCh2 = 1.2;
+int selectedChannel = 1; // 1 = CH1, 2 = CH2
 
 void setup()
 {
     // put your setup code here, to run once:
     Serial.begin(115200);
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
 
-    if (!SPIFFS.begin(true))
-    {
-        Serial.println("An Error has occurred while mounting SPIFFS");
-        return;
-    }
+    display.init();
+    display.showBootWindow();
+    encoder.init(0, 50, (int)(currentVoltageCh1 * 10));
+    encoder.invertDirection(true); // Drehrichtung umkehren
 
-    WiFiManager wm;
-    // reset settings - wipe stored credentials for testing, these are stored by the esp library
-    // wm.resetSettings();
-    bool res;
-    res = wm.autoConnect("VoltageRegulator", "123456789");
-    if (!res)
-    {
-        Serial.println("Failed to connect");
-        // ESP.restart();
-    }
-    else
-    {
-        Serial.println("connected...yeey :)");
-    }
-
-    // === HTTP-Routen registrieren ===
-    server.on("/", []() { serveFile("/index.html", "text/html"); });
-    server.on("/style.css", []() { serveFile("/style.css", "text/css"); });
-    server.on("/script.js", []() { serveFile("/script.js", "application/javascript"); });
-    server.on("/led", HTTP_POST, handleLedPost);
-
-    Serial.println("HTTP-Server starting...");
-    server.begin();
-    Serial.println("HTTP-Server started");
+    delay(3000); // Kurze Pause nach dem Booten
 }
 
 void loop()
 {
-    // put your main code here, to run repeatedly:
-    server.handleClient();
-}
-
-void serveFile(const char *path, const char *contentType)
-{
-    File file = SPIFFS.open(path, "r");
-    if (!file)
+    int value = encoder.update();
+    // Reagiere auf Taster → Kanal wechseln
+    if (encoder.isButtonPressed())
     {
-        server.send(404, "text/plain", "Datei nicht gefunden");
-        return;
-    }
-    server.streamFile(file, contentType);
-    file.close();
-}
+        selectedChannel = (selectedChannel == 1) ? 2 : 1;
 
-void handleLedPost()
-{
-    if (server.hasArg("plain") == false)
-    {
-        server.send(400, "text/plain", "Kein Body empfangen");
-        return;
+        // Encoder neu initialisieren auf neuen Wert
+        int newStart = (selectedChannel == 1) ? (int)(currentVoltageCh1 * 10)
+                                              : (int)(currentVoltageCh2 * 10);
+        encoder.setValue(newStart);
     }
 
-    String body = server.arg("plain");
-    StaticJsonDocument<200> doc;
-    DeserializationError error = deserializeJson(doc, body);
 
-    if (error)
+    double newVoltage = value / 10.0;
+    if (selectedChannel == 1 && newVoltage != currentVoltageCh1)
     {
-        server.send(400, "text/plain", "Ungültiges JSON");
-        return;
+        currentVoltageCh1 = newVoltage;
+        Serial.println("CH1 Voltage: " + String(currentVoltageCh1));
+    }
+    else if (selectedChannel == 2 && newVoltage != currentVoltageCh2)
+    {
+        currentVoltageCh2 = newVoltage;
+        Serial.println("CH2 Voltage: " + String(currentVoltageCh2));
     }
 
-    bool ledOn = doc["on"];
-    digitalWrite(LED_BUILTIN, ledOn ? LOW : HIGH);
-
-    String status = ledOn ? "LED ist AN" : "LED ist AUS";
-    server.send(200, "text/plain", status);
+    display.showMainWindow(currentVoltageCh1, currentVoltageCh2, "192.168.0.123", selectedChannel);
 }
-
-// put function definitions here:
-// void blink(long interval)
-// {
-//     long currentMillis = millis();
-//     if (currentMillis - lastMillis >= interval)
-//     {
-//         lastMillis = currentMillis;
-//         digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-//         // Serial.println("Test");
-//     }
-// }
