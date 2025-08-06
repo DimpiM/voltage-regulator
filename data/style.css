@@ -1,18 +1,47 @@
 body {
-    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f7f9fc;
+    color: #333;
+}
+
+.container {
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     text-align: center;
-    margin-top: 50px;
-    background-color: #f4f4f4;
 }
 
-button {
-    font-size: 20px;
-    padding: 10px 20px;
-    margin: 10px;
-    cursor: pointer;
+h1 {
+    margin-bottom: 20px;
 }
 
-#status {
-    margin-top: 20px;
+.channel-block {
+    margin-bottom: 30px;
+}
+
+.channel-block h2 {
+    margin-bottom: 5px;
+}
+
+.voltage-value {
+    font-size: 2em;
     font-weight: bold;
+    color: #0077cc;
+    margin: 10px 0;
+}
+
+input[type="range"] {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.footer {
+    margin-top: 40px;
+    font-size: 0.9em;
+    color: #888;
 }

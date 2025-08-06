@@ -9,7 +9,7 @@ WebServer server(80);
 
 // put function declarations here:
 void serveFile(const char *, const char *);
-void handleLedPost();
+void handlePostVoltage();
 
 void setup()
 {
@@ -44,7 +44,7 @@ void setup()
     server.on("/", []() { serveFile("/index.html", "text/html"); });
     server.on("/style.css", []() { serveFile("/style.css", "text/css"); });
     server.on("/script.js", []() { serveFile("/script.js", "application/javascript"); });
-    server.on("/led", HTTP_POST, handleLedPost);
+    server.on("/voltage", HTTP_POST, handlePostVoltage);
 
     Serial.println("HTTP-Server starting...");
     server.begin();
@@ -69,7 +69,7 @@ void serveFile(const char *path, const char *contentType)
     file.close();
 }
 
-void handleLedPost()
+void handlePostVoltage()
 {
     if (server.hasArg("plain") == false)
     {

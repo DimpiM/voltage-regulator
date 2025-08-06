@@ -1,16 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 
 <head>
-    <title>ESP32 LED Control</title>
-    <link rel="stylesheet" href="/style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spannungsregler</title>
+    <link rel="stylesheet" href="/style.css" />
 </head>
 
 <body>
-    <h1>LED Steuerung</h1>
-    <button onclick="toggleLED(true)">LED AN</button>
-    <button onclick="toggleLED(false)">LED AUS</button>
-    <p id="status">Status unbekannt</p>
+    <div class="container">
+        <h1>Spannungsregler</h1>
+
+        <div class="channel-block">
+            <h2>CH1</h2>
+            <p class="voltage-value"><span id="ch1">--.-</span> V</p>
+            <input type="range" id="slider1" min="0" max="50" step="1" />
+        </div>
+
+        <div class="channel-block">
+            <h2>CH2</h2>
+            <p class="voltage-value"><span id="ch2">--.-</span> V</p>
+            <input type="range" id="slider2" min="0" max="50" step="1" />
+        </div>
+
+        <p class="footer">ESP32 Web Interface</p>
+    </div>
 
     <script src="/script.js"></script>
 </body>
