@@ -16,41 +16,45 @@ void WebServerHandler::init()
     }
 
     WiFiManager wm;
-
-    bool res;
-    res = wm.autoConnect("VoltageRegulator", "123456789");
-    if (!res)
+    if (!wm.autoConnect("VoltageRegulator", "123456789"))
     {
-        Serial.println("Failed to connect");
-        // ESP.restart();
+        Serial.println("Keine Verbindung, starte AP-Modus...");
+
+        ipAddress = "AP-Mode: " + WiFi.softAPIP().toString();
     }
     else
     {
-        Serial.println("connected...yeey :)");
+        isConnected = true;
         ipAddress = WiFi.localIP().toString();
-        Serial.println("IP-Adresse: " + ipAddress);
+        Serial.println("connected... IP-Adresse: " + ipAddress);
     }
 
-    // === HTTP-Routen registrieren ===
-    server.on("/", [this]()
-              { serveFile("/index.html", "text/html"); });
-    server.on("/style.css", [this]()
-              { serveFile("/style.css", "text/css"); });
-    server.on("/script.js", [this]()
-              { serveFile("/script.js", "application/javascript"); });
-    server.on("/voltage", HTTP_POST, [this]()
-              { handlePostVoltage(); });
-    server.on("/voltage", HTTP_GET, [this]()
-              { handleGetVoltage(); });
+    if (isConnected)
+    {
+        // === HTTP-Routen registrieren ===
+        server.on("/", [this]()
+                  { serveFile("/index.html", "text/html"); });
+        server.on("/style.css", [this]()
+                  { serveFile("/style.css", "text/css"); });
+        server.on("/script.js", [this]()
+                  { serveFile("/script.js", "application/javascript"); });
+        server.on("/voltage", HTTP_POST, [this]()
+                  { handlePostVoltage(); });
+        server.on("/voltage", HTTP_GET, [this]()
+                  { handleGetVoltage(); });
 
-    Serial.println("HTTP-Server starting...");
-    server.begin();
-    Serial.println("HTTP-Server started");
+        Serial.println("HTTP-Server starting...");
+        server.begin();
+        Serial.println("HTTP-Server started");
+    }
 }
 
 void WebServerHandler::handleClient()
 {
-    server.handleClient();
+    if (isConnected)
+    {
+        server.handleClient();
+    }
 }
 
 String WebServerHandler::getIpAddress() const

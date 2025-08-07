@@ -26,6 +26,7 @@ private:
     bool newVoltageReceived = false;
 
     String ipAddress;
+    bool isConnected = false;
 };
 
 #endif
